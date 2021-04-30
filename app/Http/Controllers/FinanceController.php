@@ -8,6 +8,25 @@ use Illuminate\Support\Facades\Auth;
 
 class FinanceController extends Controller
 {
+
+    public function index()
+    {
+        $debit = Auth::user()->finances()
+            ->whereBetween('when', [now()->firstOfMonth(), now()])
+            ->where('amount', '>=', 0)
+            ->get('amount')->sum('amount');
+
+        $credit = Auth::user()->finances()
+            ->whereBetween('when', [now()->firstOfMonth(), now()])
+            ->where('amount', '<', 0)
+            ->get('amount')->sum('amount');
+
+        $balances = Auth::user()->finances()->get('amount')->sum('amount');
+        // return $balances;
+
+        return response()->json(compact('debit', 'credit', 'balances'));
+    }
+
     public function store()
     {
         request()->validate([
