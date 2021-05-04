@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\FinanceResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
@@ -23,8 +24,14 @@ class FinanceController extends Controller
 
         $balances = Auth::user()->finances()->get('amount')->sum('amount');
         // return $balances;
+        $transaction = Auth::user()->finances()->whereBetween('when', [now()->firstOfMonth(), now()])->latest()->get();
 
-        return response()->json(compact('debit', 'credit', 'balances'));
+        return response()->json([
+            'balances' => formatPrice($balances),
+            'debit' => formatPrice($debit),
+            'credit' => formatPrice($credit),
+            'transaction' => FinanceResource::collection($transaction)
+        ]);
     }
 
     public function store()
